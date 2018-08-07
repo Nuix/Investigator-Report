@@ -1,0 +1,20 @@
+<%#coding: UTF-8 %>
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="resources/styles.css" >
+	<link rel="stylesheet" href="resources/bootstrap.min.css" >
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title><%= html_escape(title) %></title>
+</head>
+<body>
+	<div class="header"><%= html_escape(title) %></div>
+	<table class="table table-bordered table-hover table-condensed two_col">
+		<tbody>
+		<% case_information.each do |name,value| %>
+			<tr><td><div class="two_col_label"><%= html_escape(name) %></div></td><td><div class="two_col_value"><%= html_escape(value) %></div></td></tr>
+		<% end %>
+		</tbody>
+	</table>
+</body>
+</html>

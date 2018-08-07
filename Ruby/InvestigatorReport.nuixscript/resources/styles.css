@@ -1,0 +1,8 @@
+body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 4px;}
+.date {  }
+.header { font-size: 32pt; }
+.nav_header { font-size: 20pt; }
+table.two_col td:last-child { width: 100% }
+.two_col_label { font-weight: bold; text-align: right; white-space: nowrap;}
+.two_col_value {  }
+.tag { border:1px solid black; padding: 2px; }

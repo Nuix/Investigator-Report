@@ -1,0 +1,120 @@
+<%#coding: UTF-8 %>
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="../../resources/styles.css" >
+	<link rel="stylesheet" href="../../resources/bootstrap.min.css" >
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title><%= html_escape(title) %></title>
+</head>
+<body>
+	<div class="well"><h2><%= html_escape(title) %></h2></div>
+	<% if @product_exported_items[item] == true %>
+		<% if has_thumbnail?(item) %>
+			<% thumbnail_settings = get_export_settings("thumbnail".freeze) %>
+			<% subdir = thumbnail_settings["subdir".freeze] %>
+			<% src = "..\\..\\products\\#{subdir}\\#{item.getGuid[0..2]}\\#{item.getGuid}.png" %>
+			<img src="<%= src %>" class="thumbnail">
+		<% end %>
+
+		<% if @settings["products".freeze].reject{|p|p["type".freeze]=="thumbnail".freeze}.size > 0 %>
+			<h3 class="page-header">Files</h3>
+			<%= get_product_links(item) %>
+		<% end %>
+	<% end %>
+
+	<% if @settings["item_details".freeze]["include_tags".freeze] %>
+		<h3 class="page-header">Tags</h3>
+		<% tags.each do |tag| %>
+		<span class="tag"><%= html_escape(tag) %></span>
+		<% end %>
+	<% end %>
+	
+	<% if @settings["item_details".freeze]["include_comments".freeze] %>
+		<h3 class="page-header">Comments</h3>
+		<pre><%= html_escape(comments) %></pre>
+	<% end %>
+
+	<h3 class="page-header">Nuix-defined Metadata</h3>
+	<table class="table table-striped table-bordered table-hover table-condensed two_col">
+		<tbody>
+			<% data.each do |name,value| %>
+				<tr><td><div class="two_col_label"><%= html_escape(name) %></div></td><td><div class="two_col_value"><%= html_escape(value) %></div></td></tr>
+			<% end %>
+		</tbody>
+	</table>
+
+	<% if @settings["item_details".freeze]["include_properties".freeze] %>
+		<h3 class="page-header">Properties</h3>
+		<table class="table table-striped table-bordered table-hover table-condensed two_col">
+			<tbody>
+				<% properties.each do |name,value| %>
+					<tr><td><div class="two_col_label"><%= html_escape(name) %></div></td><td><div class="two_col_value"><%= html_escape(value) %></div></td></tr>
+				<% end %>
+			</tbody>
+		</table>
+	<% end %>
+
+	<% if @settings["item_details".freeze]["include_custom_metadata".freeze] && custom_metadata.size > 0 %>
+		<h3 class="page-header">Custom Metadata</h3>
+		<table class="table table-striped table-bordered table-hover table-condensed two_col">
+			<tbody>
+				<% custom_metadata.each do |name,value| %>
+					<tr><td><div class="two_col_label"><%= html_escape(name) %></div></td><td><div class="two_col_value"><%= html_escape(value) %></div></td></tr>
+				<% end %>
+			</tbody>
+		</table>
+	<% end %>
+
+	<% if @settings["item_details".freeze]["include_profile".freeze] && profile_values.size > 0 %>
+		<h3 class="page-header"><%= html_escape(profile_name) %></h3>
+		<table class="table table-striped table-bordered table-hover table-condensed two_col">
+			<tbody>
+				<% profile_values.each do |name,value| %>
+					<tr><td><div class="two_col_label"><%= html_escape(name) %></div></td><td><div class="two_col_value"><%= html_escape(value) %></div></td></tr>
+				<% end %>
+			</tbody>
+		</table>
+	<% end %>
+
+	<% if item.isKind("email".freeze) %>
+	<h3 class="page-header">Email</h3>
+	<% if has_communication %>
+		<table class="table table-striped table-bordered table-hover table-condensed two_col">
+			<tbody>
+				<% email_data.each do |name,value| %>
+					<% if value.is_a?(Array) %>
+					<% value = value.map{|v|html_escape(v)}.join("; ".freeze) %>
+					<% else %>
+					<% value = html_escape(value) %>
+					<% end %>
+					<tr><td><div class="two_col_label"><%= html_escape(name) %></div></td><td><div class="two_col_value"><%= value %></div></td></tr>
+				<% end %>
+			</tbody>
+		</table>
+	<% else %>
+		Email item did not contain communication information.
+	<% end %>
+		<% item_children = item.getChildren %>
+		<% if item_children.size > 0 %>
+		<h4>Attachments</h4>
+		<ul>
+			<% item_children.each do |child| %>
+				<% #child_was_exported = $utilities.getItemUtility.intersection([child],items).size > 0 %>
+				<% child_was_exported = @report_items[child] %>
+				<% if child_was_exported %>
+				<% child_url = "../#{child.getGuid[0..2]}/#{child.getGuid}.html" %>
+				<li><a href="<%= child_url %>"><%= child.getLocalisedName %></a></li>
+				<% else %>
+				<li><%= child.getLocalisedName %> (Not included in report)</li>
+				<% end %>
+			<% end %>
+		<% end %>
+		</ul>
+	<% end %>
+	<% if @settings["item_details".freeze]["include_text".freeze] %>
+		<h3 class="page-header">Text</h3>
+		<pre style="white-space:pre-wrap;"><%= html_escape(item.getTextObject.toString.gsub(/\r\n/,"\n")) %></pre>
+	<% end %>
+</body>
+</html>

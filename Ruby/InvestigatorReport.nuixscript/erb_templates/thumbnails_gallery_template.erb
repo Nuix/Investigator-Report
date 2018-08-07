@@ -1,0 +1,48 @@
+<%#coding: UTF-8 %>
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="resources/styles.css" >
+	<link rel="stylesheet" href="resources/bootstrap.min.css" >
+	<script src="resources/jquery.min.js"></script>
+	<script src="resources/bootstrap.min.js"></script>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title><%= html_escape(title) %></title>
+	<style>
+		.fit-image {
+			max-width: 200px;
+			max-height: 200px;
+		}
+	</style>
+</head>
+<body>
+	<div class="header"><%= html_escape(title) %></div>
+	<% thumbnail_items = items.select{|i|has_thumbnail?(i)} %>
+	<% thumbnail_settings = get_export_settings("thumbnail") %>
+	<% subdir = thumbnail_settings["subdir"] %>
+	<% export_dir = report_path(@settings["report_directories"]["exported_files"]) %>
+	<% thumbnail_items.each_slice(6) do |slice| %>
+		<div class="row">
+			<% slice.each do |item| %>
+			<% src = "products\\#{subdir}\\#{item.getGuid[0..2]}\\#{item.getGuid}.png" %>
+			<% item_detail_url = "#{get_item_detail_directory(item)}\\#{item.getGuid}.html" %>
+			<% tooltip = "Kind: #{item.getType.getKind.getName.capitalize}<br/>" %>
+			<% tooltip << "Mime-Type: #{item.getType.getName}" %>
+			<div class="col-md-2">
+				<a href="<%= item_detail_url %>" class="thumbnail" data-toggle="tooltip" title="<%= tooltip %>">
+					<img class="fit-image" src="<%= src %>" alt="<%= item.getLocalisedName %>">
+					<div class="caption">
+						<%= item.getLocalisedName %>
+					</div>
+				</a>
+			</div>
+			<% end %>
+		</div>
+	<% end %>
+	<script>
+	$(function () {
+	  $('[data-toggle="tooltip"]').tooltip({html:true})
+	})
+	</script>
+</body>
+</html>
