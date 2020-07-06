@@ -470,6 +470,52 @@ class InvestigatorReportGenerator
 			detail_path = report_path(File.join(get_item_detail_directory(item),"#{item.getGuid}.html"))
 			File.open(detail_path,"w:utf-8") do |file|
 				file.puts @templates["item_detail"].result(b)
+
+				if @settings["item_details"]["include_text"]
+					# Write beginning of text PRE block
+					file.puts "<h3 class=\"page-header\">Text</h3>"
+					file.puts "<pre style=\"white-space:pre-wrap;\">"
+
+					text_object = item.getTextObject
+					if NuixConnection.getCurrentNuixVersion.isAtLeast("8.6")
+						buffered_reader = nil
+						begin
+							text_object.usingText do |reader|
+								buffered_reader = BufferedReader.new(reader)
+								while true
+									line = buffered_reader.readLine
+									break if line.nil?
+									# Write text line by line, escaping HTML
+									# special characters along the way
+									file.puts html_escape(line)
+								end
+							end
+						rescue Exception => exc
+							logMessage("ERROR while adding text to item detail: #{exc.message}\n#{exc.backtrace.join("\n")}")
+						ensure
+							if !buffered_reader.nil?
+								buffered_reader.close
+							end
+						end
+					else
+						# We are not in Nuix 8.6+ so we have to use the older more perilous way
+						# where we can only get the whole item text as a single string which may
+						# cause a string to allocate which is bigger than max Java array length
+						begin
+							file.puts text_object.toString
+						rescue Exception => exc
+							logMessage("ERROR while adding text to item detail: #{exc.message}\n#{exc.backtrace.join("\n")}")
+						end
+					end
+
+					# Write close of text PRE block
+					file.puts "</pre>"
+				end
+
+				# Leaving this off template, since we may need to include item text in file separately
+				# due to it blowing out Java array limit when template apparently does a join at the end
+				# see here: https://github.com/jruby/jruby/issues/4704
+				file.puts "</body></html>"
 			end
 		end
 	end

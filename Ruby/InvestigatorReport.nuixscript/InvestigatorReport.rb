@@ -49,6 +49,7 @@ load File.join(script_directory,"InvestigatorReportGenerator.rb")
 require File.join(script_directory,"InvestigatorReportGUI.jar")
 
 java_import com.nuix.investigatorreport.ReportSettingsDialog
+java_import java.io.BufferedReader
 
 # Allows you to configure the default value of "Records per Page" setting
 # Note that value must be >= 10

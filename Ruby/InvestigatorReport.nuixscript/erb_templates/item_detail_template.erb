@@ -112,9 +112,3 @@
 		<% end %>
 		</ul>
 	<% end %>
-	<% if @settings["item_details".freeze]["include_text".freeze] %>
-		<h3 class="page-header">Text</h3>
-		<pre style="white-space:pre-wrap;"><%= html_escape(item.getTextObject.toString.gsub(/\r\n/,"\n")) %></pre>
-	<% end %>
-</body>
-</html>

@@ -1,6 +1,7 @@
 package com.nuix.investigatorreport;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -32,18 +34,17 @@ import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
-import javax.swing.ListSelectionModel;
 
 import org.apache.commons.io.FilenameUtils;
 
-import java.awt.Component;
-
-import javax.swing.Box;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 @SuppressWarnings("serial")
 public class ReportSettingsDialog extends JDialog {
@@ -934,7 +935,7 @@ public class ReportSettingsDialog extends JDialog {
 		settings.put("definitions_file_path", txtDefinitionsFilePath.getText());
 		settings.put("report_excluded_items",chckbxReportExcludedItems.isSelected());
 		
-		ArrayList<HashMap<String, String>> additionalFiles = new ArrayList<HashMap<String,String>>();
+		List<HashMap<String, String>> additionalFiles = new ArrayList<HashMap<String,String>>();
 		for(IncludedFile file : tableFilesModel.getFiles()){
 			HashMap<String,String> v = new HashMap<String,String>();
 			v.put("title", file.getTitle());
@@ -943,14 +944,14 @@ public class ReportSettingsDialog extends JDialog {
 		}
 		settings.put("additional_files",additionalFiles);
 		
-		ArrayList<Map<String,Object>> summaryReports = new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> summaryReports = new ArrayList<Map<String,Object>>();
 		for(SummaryInfo info : tableSummariesModel.getSummaries()){
 			summaryReports.add(info.toMap());
 		}
 		settings.put("summary_reports", summaryReports);
 		settings.put("records_per_summary_report", (Integer)spinnerRecordsPerPage.getValue());
 		
-		ArrayList<HashMap<String,Object>> products = new ArrayList<HashMap<String,Object>>();
+		List<HashMap<String,Object>> products = new ArrayList<HashMap<String,Object>>();
 		if(chckbxExportNatives.isSelected()){
 			HashMap<String,Object> entry = new HashMap<String,Object>();
 			entry.put("type", "native");
@@ -974,11 +975,11 @@ public class ReportSettingsDialog extends JDialog {
 		}
 		settings.put("products", products);
 		
-		HashMap<String,Object> imagingSettings = new HashMap<String,Object>();
+		Map<String,Object> imagingSettings = new HashMap<String,Object>();
 		imagingSettings.put("imageExcelSpreadsheets",chckbxImageSpreadsheets.isSelected());
 		settings.put("imaging_settings", imagingSettings);
 		
-		HashMap<String,Object> itemDetails = new HashMap<String,Object>();
+		Map<String,Object> itemDetails = new HashMap<String,Object>();
 		itemDetails.put("include_tags", chckbxIncludeTags.isSelected());
 		itemDetails.put("include_text", chckbxIncludeText.isSelected());
 		itemDetails.put("include_custom_metadata", chckbxIncludeCustomMetadata.isSelected());
@@ -993,13 +994,23 @@ public class ReportSettingsDialog extends JDialog {
 		
 		settings.put("record_settings", chckbxRecordSettings.isSelected());
 		
-		HashMap<String,Object> parallel_export_settings = new HashMap<String,Object>();
+		Map<String,Object> parallel_export_settings = new HashMap<String,Object>();
 		parallel_export_settings.put("workerCount",spinnerWorkerCount.getValue());
 		parallel_export_settings.put("workerMemory",spinnerWorkerMemory.getValue());
 		parallel_export_settings.put("workerTemp",txtWorkerTemp.getText());
 		settings.put("parallel_export_settings", parallel_export_settings);
 		
 		return settings;
+	}
+	
+	public String getSettingsJson() {
+		Gson gson = null;
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.serializeNulls();
+		gsonBuilder.setPrettyPrinting();
+		gson = gsonBuilder.create();
+		String asJson = gson.toJson(getSettings());
+		return asJson;
 	}
 	
 	public void setDefaultSummaryReports(List<Map<String,Object>> reports){
