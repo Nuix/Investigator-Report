@@ -1,11 +1,11 @@
-<%#coding: UTF-8 %>
+<%#coding: UTF-8 -%>
 <!DOCTYPE html>
 <html>
 <head>
 	<link rel="stylesheet" href="resources/styles.css" >
 	<link rel="stylesheet" href="resources/bootstrap.min.css" >
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title><%= html_escape(title) %></title>
+	<title><%= html_escape(title) -%></title>
 	<style>
 	html, body {
 		margin: 0px;
@@ -13,51 +13,51 @@
 		height: 100%;
 	}
 
-	#wrap { padding-right:<%= nav_width+20 %>px;  background: #fff; overflow:hidden; height: 100%;}
-	#navigation { width: <%= nav_width %>px; float: left; height: 100%; overflow:scroll;}
-	#content { margin: 0 -<%= nav_width %>px 0 auto; width: 100%; float:right; height:100%; }
+	#wrap { padding-right:<%= nav_width+20 -%>px;  background: #fff; overflow:hidden; height: 100%;}
+	#navigation { width: <%= nav_width -%>px; float: left; height: 100%; overflow:scroll;}
+	#content { margin: 0 -<%= nav_width -%>px 0 auto; width: 100%; float:right; height:100%; }
 	.nav_header { margin-left:5px; }
 	</style>
 </head>
 <body>
 	<div id="wrap">
 	<div id="navigation">
-		<% if has_logo %>
-		<img src="resources/logo.png" style="width:<%= nav_width %>px"/>
-		<% end %>
+		<% if has_logo -%>
+		<img src="resources/logo.png" style="width:<%= nav_width -%>px"/>
+		<% end -%>
 		<ul class="list-unstyled">
 			<li><div class="nav_header">General</div>
 				<ul>
 				<li><a href="CaseInformation.html" target="content">Case Information</a></li>
-				<% if @settings["include_cv_file"] && java.io.File.new(@settings["cv_file_path"]).exists %>
-				<li><a href="<%= File.basename(@settings["cv_file_path"]) %>" target="content">Curriculum Vitae</a></li>
-				<% end %>
-				<% if @settings["include_definitions_file"] && java.io.File.new(@settings["definitions_file_path"]).exists %>
-				<li><a href="<%= File.basename(@settings["definitions_file_path"]) %>" target="content">Definitions</a></li>
-				<% end %>
-				<% @settings["additional_files"].each do |additional_file_info| %>
-					<% path = additional_file_info["path"] %>
-					<% title = additional_file_info["title"] %>
-					<% if java.io.File.new(path).exists %>
-					<li><a href="<%= File.basename(path) %>"  target="content"><%= title %></a></li>
-					<% end %>
-				<% end %>
-				<% if was_exported?("thumbnail") %>
+				<% if @settings["include_cv_file"] && java.io.File.new(@settings["cv_file_path"]).exists -%>
+				<li><a href="<%= File.basename(@settings["cv_file_path"]) -%>" target="content">Curriculum Vitae</a></li>
+				<% end -%>
+				<% if @settings["include_definitions_file"] && java.io.File.new(@settings["definitions_file_path"]).exists -%>
+				<li><a href="<%= File.basename(@settings["definitions_file_path"]) -%>" target="content">Definitions</a></li>
+				<% end -%>
+				<% @settings["additional_files"].each do |additional_file_info| -%>
+					<% path = additional_file_info["path"] -%>
+					<% title = additional_file_info["title"] -%>
+					<% if java.io.File.new(path).exists -%>
+					<li><a href="<%= File.basename(path) -%>"  target="content"><%= title -%></a></li>
+					<% end -%>
+				<% end -%>
+				<% if was_exported?("thumbnail") -%>
 				<li><a href="ThumbnailsGallery.html" target="content">Thumbnails</a></li>
-				<% end %>
+				<% end -%>
 			</ul></li>
 			<li><div class="nav_header">Summaries</div>
 				<ul>
-				<% summary_reports.each do |summary_report| %>
-					<% next if summary_report["hit_count"] < 1 %>
-					<% summary_report["pages"].times do |page|%>
-						<li><a href="<%= "Summary_#{escape_filename(summary_report["title"])}_#{(page+1).to_s.rjust(4,"0")}.html" %>" target="content"><%= html_escape(summary_report["title"]) %>
-							<% if summary_report["pages"] > 1 %>
-								<%= " (#{page+1} / #{summary_report["pages"]})" %>
-							<% end %>
+				<% summary_reports.each do |summary_report| -%>
+					<% next if summary_report["hit_count"] < 1 -%>
+					<% summary_report["pages"].times do |page|-%>
+						<li><a href="<%= "Summary_#{escape_filename(summary_report["title"])}_#{(page+1).to_s.rjust(4,"0")}.html" -%>" target="content"><%= html_escape(summary_report["title"]) -%>
+							<% if summary_report["pages"] > 1 -%>
+								<%= " (#{page+1} / #{summary_report["pages"]})" -%>
+							<% end -%>
 						</a></li>
-					<% end %>
-				<% end %>
+					<% end -%>
+				<% end -%>
 			</ul></li>
 		</ul>
 	</div>

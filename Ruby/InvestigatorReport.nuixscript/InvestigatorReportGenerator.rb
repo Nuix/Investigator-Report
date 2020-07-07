@@ -469,12 +469,18 @@ class InvestigatorReportGenerator
 
 			detail_path = report_path(File.join(get_item_detail_directory(item),"#{item.getGuid}.html"))
 			File.open(detail_path,"w:utf-8") do |file|
-				file.puts @templates["item_detail"].result(b)
+				majority_html = @templates["item_detail"].result(b)
+				# Attempt to trim some fat
+				majority_html = majority_html.gsub(/\r\n/,"\n")
+				majority_html = majority_html.gsub(/^\s+</,"<")
+				majority_html = majority_html.gsub(/>\n</,"><")
+				
+				file.write majority_html
 
 				if @settings["item_details"]["include_text"]
 					# Write beginning of text PRE block
-					file.puts "<h3 class=\"page-header\">Text</h3>"
-					file.puts "<pre style=\"white-space:pre-wrap;\">"
+					file.write "<h3 class=\"page-header\">Text</h3>"
+					file.write "<pre style=\"white-space:pre-wrap;\">"
 
 					text_object = item.getTextObject
 					if NuixConnection.getCurrentNuixVersion.isAtLeast("8.6")
@@ -487,7 +493,7 @@ class InvestigatorReportGenerator
 									break if line.nil?
 									# Write text line by line, escaping HTML
 									# special characters along the way
-									file.puts html_escape(line)
+									file.write html_escape(line)+"\n"
 								end
 							end
 						rescue Exception => exc
@@ -502,14 +508,14 @@ class InvestigatorReportGenerator
 						# where we can only get the whole item text as a single string which may
 						# cause a string to allocate which is bigger than max Java array length
 						begin
-							file.puts text_object.toString
+							file.write text_object.toString({:lineSeparator=>"\n"})
 						rescue Exception => exc
 							logMessage("ERROR while adding text to item detail: #{exc.message}\n#{exc.backtrace.join("\n")}")
 						end
 					end
 
 					# Write close of text PRE block
-					file.puts "</pre>"
+					file.write "</pre>"
 				end
 
 				# Leaving this off template, since we may need to include item text in file separately
@@ -553,7 +559,7 @@ class InvestigatorReportGenerator
 		]
 		names.each do |template_name|
 			template_path = File.join(File.dirname(__FILE__),"erb_templates","#{template_name}_template.erb")
-			@templates[template_name] = ERB.new(File.read(template_path))
+			@templates[template_name] = ERB.new(File.read(template_path), nil, '-')
 		end
 	end
 
