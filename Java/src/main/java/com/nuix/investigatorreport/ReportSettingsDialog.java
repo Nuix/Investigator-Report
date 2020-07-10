@@ -77,6 +77,12 @@ public class ReportSettingsDialog extends JDialog {
 	public static void setDefaultRecordsPerPage(int defaultRecordsPerPage) {
 		ReportSettingsDialog.defaultRecordsPerPage = defaultRecordsPerPage;
 	}
+	
+	private static String defaultSummaryProfileName = "Default metadata profile";
+	public static void setDefaultSummaryProfileName(String defaultProfileName) {
+		defaultSummaryProfileName = defaultProfileName;
+	}
+	
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtOutputdirectory;
 	private boolean dialogResult = false;
@@ -125,6 +131,7 @@ public class ReportSettingsDialog extends JDialog {
 	private JCheckBox chckbxReportExcludedItems;
 	private JSpinner spinnerRecordsPerPage;
 	private JLabel lblRecordsPerPage;
+	private JButton btnSetAllSorts;
 
 	public ReportSettingsDialog(){
 		this(new ArrayList<String>(),new ArrayList<String>(),"Report ");
@@ -397,9 +404,9 @@ public class ReportSettingsDialog extends JDialog {
 						gbc_panel.gridy = 0;
 						panelSummarySettings.add(panel, gbc_panel);
 						GridBagLayout gbl_panel = new GridBagLayout();
-						gbl_panel.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
+						gbl_panel.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 						gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 0};
-						gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, Double.MIN_VALUE};
+						gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, Double.MIN_VALUE};
 						gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
 						panel.setLayout(gbl_panel);
 						{
@@ -469,7 +476,7 @@ public class ReportSettingsDialog extends JDialog {
 							panel.add(btnMoveDown, gbc_btnMoveDown);
 						}
 						{
-							btnSetAllProfiles = new JButton("Set All Profiles...");
+							btnSetAllProfiles = new JButton("Set All Profiles");
 							btnSetAllProfiles.addActionListener(new ActionListener() {
 								public void actionPerformed(ActionEvent arg0) {
 									String profileChoice = (String) JOptionPane.showInputDialog(
@@ -496,10 +503,38 @@ public class ReportSettingsDialog extends JDialog {
 							panel.add(btnSetAllProfiles, gbc_btnSetAllProfiles);
 						}
 						{
+							btnSetAllSorts = new JButton("Set All Sorts");
+							btnSetAllSorts.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent arg0) {
+									String sortChoice = (String) JOptionPane.showInputDialog(
+										ReportSettingsDialog.this,
+										"Select sort orger for all summaries.",
+										"Set all summary sort order",
+										JOptionPane.PLAIN_MESSAGE,
+										null,
+										availableItemSorts,
+										availableItemSorts[0]
+									);
+								
+									if(sortChoice != null){
+										for(SummaryInfo info : tableSummariesModel.getSummaries()){
+											info.setSort(sortChoice);
+										}
+										tableSummariesModel.refresh();
+									}
+								}
+							});
+							GridBagConstraints gbc_btnSetAllSorts = new GridBagConstraints();
+							gbc_btnSetAllSorts.insets = new Insets(0, 0, 5, 5);
+							gbc_btnSetAllSorts.gridx = 5;
+							gbc_btnSetAllSorts.gridy = 2;
+							panel.add(btnSetAllSorts, gbc_btnSetAllSorts);
+						}
+						{
 							JButton btnRemoveRow = new JButton("Remove Row(s)");
 							GridBagConstraints gbc_btnRemoveRow = new GridBagConstraints();
 							gbc_btnRemoveRow.insets = new Insets(0, 0, 5, 5);
-							gbc_btnRemoveRow.gridx = 6;
+							gbc_btnRemoveRow.gridx = 7;
 							gbc_btnRemoveRow.gridy = 2;
 							panel.add(btnRemoveRow, gbc_btnRemoveRow);
 							btnRemoveRow.addActionListener(new ActionListener() {
@@ -520,7 +555,7 @@ public class ReportSettingsDialog extends JDialog {
 								JButton btnRemoveAllRows = new JButton("Remove All Rows");
 								GridBagConstraints gbc_btnRemoveAllRows = new GridBagConstraints();
 								gbc_btnRemoveAllRows.insets = new Insets(0, 0, 5, 0);
-								gbc_btnRemoveAllRows.gridx = 7;
+								gbc_btnRemoveAllRows.gridx = 8;
 								gbc_btnRemoveAllRows.gridy = 2;
 								panel.add(btnRemoveAllRows, gbc_btnRemoveAllRows);
 								
@@ -537,7 +572,7 @@ public class ReportSettingsDialog extends JDialog {
 								JScrollPane scrollPane = new JScrollPane();
 								GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 								gbc_scrollPane.fill = GridBagConstraints.BOTH;
-								gbc_scrollPane.gridwidth = 8;
+								gbc_scrollPane.gridwidth = 9;
 								gbc_scrollPane.gridx = 0;
 								gbc_scrollPane.gridy = 3;
 								panel.add(scrollPane, gbc_scrollPane);
@@ -902,7 +937,26 @@ public class ReportSettingsDialog extends JDialog {
 	}
 	
 	private void preFillSummaries(String defaultReportTitlePrefix){
-		String defaultProfile = availableProfiles.get(0);
+		// First we assume we can use whatever the configure default profile name is
+		String defaultProfile = defaultSummaryProfileName;
+
+		// Check if defaultP{rofileName is not null, not empty
+		// and actually matches the name of an existing metadata profile
+		boolean defaultProfileNameExists = false;
+		if(defaultProfile != null && !defaultProfile.trim().isEmpty()) {
+			for(String existingProfileName : availableProfiles) {
+				if(existingProfileName.contentEquals(defaultSummaryProfileName)) {
+					defaultProfileNameExists = true;
+					break;
+				}
+			}
+		}
+		
+		// If we found it to be invalid, then we just assume the first in the list of available
+		if(!defaultProfileNameExists) {
+			defaultProfile = availableProfiles.get(0);
+		}
+		
 		for(String tag : availableTags){
 			SummaryInfo summaryInfo = new SummaryInfo(defaultReportTitlePrefix + tag);
 			summaryInfo.setTag(tag);

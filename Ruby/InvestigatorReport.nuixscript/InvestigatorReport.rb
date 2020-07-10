@@ -22,7 +22,8 @@ defaults = {
 		"include_profile" => false,
 		"included_profile_name" => "Default metadata profile",
 		"include_text" => true,
-	}
+	},
+	:summary_default_profile_name => "Default metadata profile",
 }
 
 script_directory = File.dirname(__FILE__).gsub(/[\/\\]$/,File::SEPARATOR)
@@ -55,6 +56,8 @@ java_import java.io.BufferedReader
 # Note that value must be >= 10
 ReportSettingsDialog.setDefaultRecordsPerPage(2000)
 
+ReportSettingsDialog.setDefaultSummaryProfileName(defaults[:summary_default_profile_name])
+
 tags = $current_case.getAllTags.sort
 profiles = $utilities.getMetadataProfileStore.getMetadataProfiles.map{|p|p.getName}.sort
 dialog = ReportSettingsDialog.new(tags,profiles,defaults[:report_title_prefix])
@@ -65,6 +68,7 @@ dialog.getSpinnerWorkerMemory.setValue(defaults[:worker_memory] || export_parall
 dialog.getTxtWorkerTemp.setText(defaults[:worker_temp] || export_parallel_preferences["workerTemp"])
 dialog.setItemDetailSettings(defaults[:item_details])
 dialog.getChckbxReportExcludedItems.setSelected(defaults[:report_excluded_items])
+
 dialog.setVisible(true)
 if dialog.getDialogResult == true
 	report_settings = dialog.getSettings
