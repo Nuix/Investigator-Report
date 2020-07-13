@@ -207,15 +207,15 @@ class InvestigatorReportGenerator
 
 	def get_thumbnail_detail_link(item)
 		width=80
-		title = "Item&nbsp;Details"
-		native_product = @settings["products"].select{|p|p["type"] == "native"}.first
+		title = "Item&nbsp;Details".freeze
+		native_product = @settings["products"].select{|p|p["type"] == "native".freeze}.first
 		guid = item.getGuid
 		item_type = item.getType
 		item_kind = item_type.getKind.getName
 		item_mime_type = item_type.getName
 		guid_subdir = guid[0..2]
 		exported_dir = @settings["report_directories"]["exported_files"]
-		if native_product && item_kind == "image" && item_mime_type != "image/tiff"
+		if native_product && item_kind == "image".freeze && item_mime_type != "image/tiff".freeze
 			extension = item.getCorrectedExtension
 			img_tag = "<img src=\"./#{exported_dir}/#{native_product["subdir"]}/#{guid_subdir}/#{guid}.#{extension}\" style=\"width:#{width}px\"/>"
 			return "<a href=\"#{get_item_detail_directory(item)}/#{guid}.html\" title=\"#{title}\">#{img_tag}</a>"
@@ -248,17 +248,17 @@ class InvestigatorReportGenerator
 			tag = summary_report["tag"]
 			title = summary_report["title"]
 			sort = summary_report["sort"]
-			puts("\t* Generating Summary: #{title}")
+			logMessage("\t* Generating Summary: #{title}")
 			escaped_tag = escape_tag_for_search(tag)
 			query = "tag:(\"#{escaped_tag}\" OR \"#{escaped_tag}|*\")"
 			if !@settings["report_excluded_items"]
 				query += " AND has-exclusion:0"
 			end
-			puts("\t\tSearching: #{query}")
+			logMessage("\t\tSearching: #{query}")
 			summary_items = $current_case.search(query)
 			summary_report["hit_count"] = summary_items.size
 			if summary_items.size > 0
-				puts("\t\tSorting Items: #{sort}")
+				logMessage("\t\tSorting Items: #{sort}")
 				case sort
 					when "Item Position"
 						summary_items = sorter.sortItemsByPosition(summary_items)
@@ -337,46 +337,106 @@ class InvestigatorReportGenerator
 					when "GUID"
 						summary_items = sorter.sortItems(summary_items){|item| item.getGuid }
 				end
-				summary_report["pages"] = generate_summary(summary_report["title"],summary_items,summary_report["profile"])
+				summary_report["pages"] = generate_summary(summary_report["title"],summary_items,summary_report["profile"],query)
 			else
-				puts("\t\tYielded no hits, skipping summary")
+				logMessage("\t\tYielded no hits, skipping summary")
 			end
 		end
 	end
 
-	def generate_summary(title,items,profile_name)
+	def generate_summary(title,items,profile_name,query)
+		logMessage("\t\tGenerating summary template data...")
+		case_stats = $current_case.getStatistics
 		include_map_link = false #Needs some tweaking possibly still
 		profile_fields = $utilities.getMetadataProfileStore.getMetadataProfile(profile_name).getMetadata
 		summary_data = {
-			"Item Count" => items.size,
-			"Total Audited Size" => items.map{|i|i.getAuditedSize}.reject{|s|s<0}.reduce(0,:+),
-			"Total File Size" => items.map{|i|i.getFileSize||0}.reject{|s|s<0}.reduce(0,:+),
+			"Item Count" => "#{items.size}".freeze,
+			"Total Audited Size" => "#{case_stats.getAuditSize(query)}".freeze,
+			"Total File Size" => "#{case_stats.getFileSize(query)}".freeze,
 		}
 
+		records_per_summary = @settings["records_per_summary_report"]
 		current_page_number = 0
-		total_pages = (items.size.to_f / @settings["records_per_summary_report"].to_f).ceil
-		items.each_slice(@settings["records_per_summary_report"]) do |slice_items|
-			current_page_number += 1
-			b = binding
+		total_pages = (items.size.to_f / records_per_summary.to_f).ceil
+		escaped_title = escape_filename(title).freeze
+		table_headers = profile_fields.map{|f|"<th>".freeze+html_escape(f.getName)+"</th>".freeze}.join
+		title = html_escape(title).freeze
 
-			setSubStatus("(#{current_page_number} / #{total_pages}) #{title} ")
-			setProgressMax(slice_items.size)
+		table_row_chunks = []
 
-			prev_page = nil
-			if current_page_number > 1
-				prev_page = "Summary_#{escape_filename(title)}_#{(current_page_number-1).to_s.rjust(4,"0")}.html"
-			end
-			next_page = nil
-			if current_page_number != total_pages
-				next_page = "Summary_#{escape_filename(title)}_#{(current_page_number+1).to_s.rjust(4,"0")}.html"
+		logMessage("\t\t\tIteratively building summary page...")
+		setProgressMax(items.size)
+
+		current_file = nil
+
+		items.each_with_index do |item,item_index|
+			if (item_index+1) % records_per_summary == 0 || item_index == 0
+				if !current_file.nil?
+					current_file.write "</tbody></table></body></html>".freeze
+					current_file.close
+				end
+
+				current_page_number += 1
+				setSubStatus("(#{current_page_number} / #{total_pages}) #{title} ")
+				summary_file_name = "Summary_#{escaped_title}_#{(current_page_number).to_s.rjust(4,"0")}.html"
+				logMessage("\t\t\tFlushing summary page: "+summary_file_name)
+
+				prev_page = nil
+				if current_page_number > 1
+					prev_page = "Summary_#{escaped_title}_#{(current_page_number-1).to_s.rjust(4,"0")}.html"
+				end
+
+				next_page = nil
+				if current_page_number != total_pages
+					next_page = "Summary_#{escaped_title}_#{(current_page_number+1).to_s.rjust(4,"0")}.html"
+				end
+
+				current_file = File.open(report_path(summary_file_name),"w:utf-8")
+				current_file.write render_summary({
+					:title => title,
+					:summary_data => summary_data,
+					:prev_page => prev_page,
+					:next_page => next_page,
+					:current_page_number => current_page_number,
+					:total_pages => total_pages,
+					:table_headers => table_headers,
+				})
 			end
 
-			File.open(report_path("Summary_#{escape_filename(title)}_#{current_page_number.to_s.rjust(4,"0")}.html"),"w:utf-8") do |file|
-				file.puts @templates["summary_report"].result(b)
+			setProgressValue(item_index+1)
+			current_file.write "<tr><td>".freeze
+			current_file.write get_thumbnail_detail_link(item)
+			current_file.write " ".freeze
+			current_file.write get_map_link(item,profile_fields) if include_map_link
+			current_file.write "</td>".freeze
+			profile_fields.each do |f|
+				current_file.write "<td>".freeze
+				current_file.write html_escape(f.evaluate(item))
+				current_file.write "</td>".freeze
 			end
+			current_file.write "</tr>".freeze
+		end
+
+		if !current_file.nil?
+			current_file.write "</tbody></table></body></html>".freeze
+			current_file.close
 		end
 
 		return current_page_number
+	end
+
+	def render_summary(data)
+		puts("\t\tRendering summary template data...")
+		title = data[:title]
+		summary_data = data[:summary_data]
+		prev_page = data[:prev_page]
+		next_page = data[:next_page]
+		current_page_number = data[:current_page_number]
+		total_pages = data[:total_pages]
+		table_headers = data[:table_headers]
+
+		b = binding
+		return @templates["summary_report"].result(b)
 	end
 
 	def get_sanitized_properties(item)
@@ -403,6 +463,11 @@ class InvestigatorReportGenerator
 			profile_fields = $utilities.getMetadataProfileStore.getMetadataProfile(@settings["item_details"]["include_profile"]).getMetadata
 		end
 
+		# For testing
+		if ENV_JAVA["skip_item_details"] == "true"
+			return
+		end
+
 		last_progress = Time.now
 		items.each_with_index do |item,item_index|
 			create_directory(get_item_detail_directory(item))
@@ -411,6 +476,7 @@ class InvestigatorReportGenerator
 				setSubStatus("#{item_index+1}/#{items.size}")
 				last_progress = Time.now
 			end
+
 			#Data for template
 			title = item.getLocalisedName
 			data = {

@@ -5,7 +5,7 @@
 	<link rel="stylesheet" href="resources/styles.css" >
 	<link rel="stylesheet" href="resources/bootstrap.min.css" >
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title><%= html_escape(title) -%></title>
+	<title><%= title -%></title>
 	<style>
 	.c td {
 		word-wrap: break-word;
@@ -13,7 +13,7 @@
 	</style>
 </head>
 <body>
-	<div class="header"><%= html_escape(title) -%></div>
+	<div class="header"><%= title -%></div>
 	<table class="table table-bordered table-hover table-condensed two_col">
 		<% summary_data.each do |name,value| -%>
 			<tr><td><div class="two_col_label"><%= html_escape(name) -%></div></td><td><div class="two_col_value"><%= html_escape(value) -%></div></td></tr>
@@ -36,18 +36,5 @@
 		</tr>
 	</table>
 	<table class="table table-striped table-bordered table-hover table-condensed c" style="width: auto !important;">
-		<thead><tr><th>Details</th><%= profile_fields.map{|f|"<th>#{html_escape(f.getName)}</th>"}.join -%></tr></thead>
+		<thead><tr><th>Details</th><%= table_headers -%></tr></thead>
 		<tbody>
-		<% last_progress = Time.now -%>
-		<% slice_items.each_with_index do |item,item_index| -%>
-			<tr><td><%= get_thumbnail_detail_link(item) -%> <%= (include_map_link ? get_map_link(item,profile_fields) : "") -%>
-			</td><%= profile_fields.map{|f|"<td>#{html_escape(f.evaluate(item))}</td>"}.join -%></tr>
-			<% if (Time.now - last_progress) > 1 -%>
-				<% setProgressValue(item_index+1) #Update progress bar -%>
-				<% last_progress = Time.now -%>
-			<% end -%>
-		<% end -%>
-		</tbody>
-	</table>
-</body>
-</html>
