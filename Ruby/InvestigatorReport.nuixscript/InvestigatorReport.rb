@@ -24,9 +24,27 @@ defaults = {
 		"include_text" => true,
 	},
 	:summary_default_profile_name => "Default metadata profile",
+	:summary_default_item_sort => "Item Position",
 }
 
-script_directory = File.dirname(__FILE__).gsub(/[\/\\]$/,File::SEPARATOR)
+# Valid Item Sorts:
+# "Item Position"
+# "Item Date Ascending"
+# "Item Date Descending"
+# "Top Level Item Date Ascending"
+# "Top Level Item Date Descending"
+# "Profile First Column Value"
+# "Item Name"
+# "Item Path"
+# "Item Kind"
+# "Mime Type"
+# "Recipient Count Ascending"
+# "Recipient Count Descending"
+# "Audited Size Ascending"
+# "Audited Size Descending"
+# "MD5"
+# "GUID"
+# "None"
 
 script_directory = File.dirname(__FILE__)
 require File.join(script_directory,"Nx.jar")
@@ -57,6 +75,7 @@ java_import java.io.BufferedReader
 ReportSettingsDialog.setDefaultRecordsPerPage(2000)
 
 ReportSettingsDialog.setDefaultSummaryProfileName(defaults[:summary_default_profile_name])
+ReportSettingsDialog.setDefaultSummarySort(defaults[:summary_default_item_sort])
 
 tags = $current_case.getAllTags.sort
 profiles = $utilities.getMetadataProfileStore.getMetadataProfiles.map{|p|p.getName}.sort

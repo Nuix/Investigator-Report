@@ -42,12 +42,15 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 @SuppressWarnings("serial")
 public class ReportSettingsDialog extends JDialog {
+	
+	private static Logger logger = Logger.getLogger(ReportSettingsDialog.class);
 
 	private static String[] availableItemSorts = new String[]{
 		"Item Position",
@@ -66,6 +69,7 @@ public class ReportSettingsDialog extends JDialog {
 		"Audited Size Descending",
 		"MD5",
 		"GUID",
+		"None",
 	};
 	
 	private static int defaultRecordsPerPage = 2000;
@@ -81,6 +85,23 @@ public class ReportSettingsDialog extends JDialog {
 	private static String defaultSummaryProfileName = "Default metadata profile";
 	public static void setDefaultSummaryProfileName(String defaultProfileName) {
 		defaultSummaryProfileName = defaultProfileName;
+	}
+	
+	private static String defaultSummarySort = "Item Position";
+	public static void setDefaultSummarySort(String defaultSort) {
+		boolean isValid = false;
+		for (int i = 0; i < availableItemSorts.length; i++) {
+			if(availableItemSorts[i].contentEquals(defaultSort)) {
+				isValid = true;
+				break;
+			}
+		}
+		
+		if(isValid) { defaultSummarySort = defaultSort; }
+		else {
+			logger.warn(String.format("Provided default item sort '%s' is not valid, falling back to using 'Item Position'", defaultSort));
+			logger.warn("Valid item sort values are: "+String.join(", ", availableItemSorts));
+		}
 	}
 	
 	private final JPanel contentPanel = new JPanel();
@@ -961,6 +982,7 @@ public class ReportSettingsDialog extends JDialog {
 			SummaryInfo summaryInfo = new SummaryInfo(defaultReportTitlePrefix + tag);
 			summaryInfo.setTag(tag);
 			summaryInfo.setProfile(defaultProfile);
+			summaryInfo.setSort(defaultSummarySort);
 			tableSummariesModel.addSummary(summaryInfo);
 		}
 	}

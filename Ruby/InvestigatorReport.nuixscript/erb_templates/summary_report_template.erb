@@ -16,7 +16,7 @@
 	<div class="header"><%= title -%></div>
 	<table class="table table-bordered table-hover table-condensed two_col">
 		<% summary_data.each do |name,value| -%>
-			<tr><td><div class="two_col_label"><%= html_escape(name) -%></div></td><td><div class="two_col_value"><%= html_escape(value) -%></div></td></tr>
+			<tr><td><div class="two_col_label"><%= name -%></div></td><td><div class="two_col_value"><%= value -%></div></td></tr>
 		<% end -%>
 		<tr>
 			<td><div class="two_col_label">Page</div></td>

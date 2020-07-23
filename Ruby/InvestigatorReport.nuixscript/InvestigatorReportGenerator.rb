@@ -3,6 +3,12 @@ require "erb"
 include ERB::Util
 require "json"
 
+# Use Java HTML escape, Ruby one may not be friendly in JRuby
+# on large scale?
+script_directory = File.dirname(__FILE__)
+require File.join(script_directory,"commons-text-1.8.jar")
+java_import org.apache.commons.text.StringEscapeUtils
+
 class InvestigatorReportGenerator
 	def initialize(settings,progress_dialog=nil)
 		@settings = {
@@ -243,20 +249,29 @@ class InvestigatorReportGenerator
 
 	def generate_tag_summaries
 		setMainStatus("Generating Summary Reports...")
-		sorter = $utilities.getItemSorter
+		sorter = nil
+		if NuixConnection.getCurrentNuixVersion.isAtLeast("8.0")
+			sorter = $utilities.getItemUtility
+		else
+			sorter = $utilities.getItemSorter
+		end
 		@settings["summary_reports"].each do |summary_report|
 			tag = summary_report["tag"]
 			title = summary_report["title"]
 			sort = summary_report["sort"]
+			
 			logMessage("\t* Generating Summary: #{title}")
 			escaped_tag = escape_tag_for_search(tag)
 			query = "tag:(\"#{escaped_tag}\" OR \"#{escaped_tag}|*\")"
+			
 			if !@settings["report_excluded_items"]
 				query += " AND has-exclusion:0"
 			end
+			
 			logMessage("\t\tSearching: #{query}")
-			summary_items = $current_case.search(query)
+			summary_items = $current_case.searchUnsorted(query)
 			summary_report["hit_count"] = summary_items.size
+
 			if summary_items.size > 0
 				logMessage("\t\tSorting Items: #{sort}")
 				case sort
@@ -336,6 +351,8 @@ class InvestigatorReportGenerator
 						summary_items = sorter.sortItems(summary_items){|item| item.getDigests.getMd5 || "" }
 					when "GUID"
 						summary_items = sorter.sortItems(summary_items){|item| item.getGuid }
+					when "None"
+						summary_items = summary_items
 				end
 				summary_report["pages"] = generate_summary(summary_report["title"],summary_items,summary_report["profile"],query)
 			else
@@ -359,8 +376,8 @@ class InvestigatorReportGenerator
 		current_page_number = 0
 		total_pages = (items.size.to_f / records_per_summary.to_f).ceil
 		escaped_title = escape_filename(title).freeze
-		table_headers = profile_fields.map{|f|"<th>".freeze+html_escape(f.getName)+"</th>".freeze}.join
-		title = html_escape(title).freeze
+		table_headers = profile_fields.map{|f|"<th>".freeze+StringEscapeUtils.escapeHtml4(f.getName)+"</th>".freeze}.join
+		title = StringEscapeUtils.escapeHtml4(title).freeze
 
 		table_row_chunks = []
 
@@ -369,57 +386,81 @@ class InvestigatorReportGenerator
 
 		current_file = nil
 
+		render_data = {
+			:title => title,
+			:summary_data => summary_data,
+			:table_headers => table_headers,
+			:total_pages => total_pages,
+		}
+
+		# Just in case Ruby is being weird and reallocating these strings over and over
+		html_finish = "</tbody></table></body></html>".freeze
+		html_row_cell_start = "<tr><td>".freeze
+		html_cell_finish = "</td>".freeze
+		html_cell_start = "<td>".freeze
+		html_row_finish = "</tr>".freeze
+
 		items.each_with_index do |item,item_index|
+
+			# Every records_per_summary items we finalize the current summary page
+			# and then begin a new one
 			if (item_index+1) % records_per_summary == 0 || item_index == 0
+
+				# If we already were working on a file, finalize it
 				if !current_file.nil?
-					current_file.write "</tbody></table></body></html>".freeze
+					current_file.write(html_finish)
 					current_file.close
+					current_file = nil
 				end
 
+				# Increment page number, generate new current page filename and 
+				# appropriate next/previous page names
 				current_page_number += 1
 				setSubStatus("(#{current_page_number} / #{total_pages}) #{title} ")
-				summary_file_name = "Summary_#{escaped_title}_#{(current_page_number).to_s.rjust(4,"0")}.html"
+				summary_file_name = "Summary_#{escaped_title}_#{(current_page_number).to_s.rjust(8,"0")}.html"
 				logMessage("\t\t\tFlushing summary page: "+summary_file_name)
 
 				prev_page = nil
 				if current_page_number > 1
-					prev_page = "Summary_#{escaped_title}_#{(current_page_number-1).to_s.rjust(4,"0")}.html"
+					prev_page = "Summary_#{escaped_title}_#{(current_page_number-1).to_s.rjust(8,"0")}.html"
 				end
 
 				next_page = nil
 				if current_page_number != total_pages
-					next_page = "Summary_#{escaped_title}_#{(current_page_number+1).to_s.rjust(4,"0")}.html"
+					next_page = "Summary_#{escaped_title}_#{(current_page_number+1).to_s.rjust(8,"0")}.html"
 				end
 
+				# Begin a new file
 				current_file = File.open(report_path(summary_file_name),"w:utf-8")
-				current_file.write render_summary({
-					:title => title,
-					:summary_data => summary_data,
-					:prev_page => prev_page,
-					:next_page => next_page,
-					:current_page_number => current_page_number,
-					:total_pages => total_pages,
-					:table_headers => table_headers,
-				})
+
+				render_data[:prev_page] = prev_page
+				render_data[:next_page] = next_page
+				render_data[:current_page_number] = current_page_number
+
+				current_file.write(render_summary(render_data))
 			end
 
+			# Here is where we right out details for each item, this used to be contained in ERB template
+			# but was pulled out and instead we now immediately write most of the table source directly to
+			# the file with the hopes that memory usage gets reduced.
 			setProgressValue(item_index+1)
-			current_file.write "<tr><td>".freeze
-			current_file.write get_thumbnail_detail_link(item)
-			current_file.write " ".freeze
-			current_file.write get_map_link(item,profile_fields) if include_map_link
-			current_file.write "</td>".freeze
+			current_file.write(html_row_cell_start)
+			current_file.write(get_thumbnail_detail_link(item))
+			current_file.write(" ".freeze+get_map_link(item,profile_fields)) if include_map_link
+			current_file.write(html_cell_finish)
 			profile_fields.each do |f|
-				current_file.write "<td>".freeze
-				current_file.write html_escape(f.evaluate(item))
-				current_file.write "</td>".freeze
+				current_file.write(html_cell_start)
+				current_file.write(StringEscapeUtils.escapeHtml4(f.evaluate(item)))
+				current_file.write(html_cell_finish)
 			end
-			current_file.write "</tr>".freeze
+			current_file.write(html_row_finish)
 		end
 
+		# Finalize what should be the last summary page
 		if !current_file.nil?
-			current_file.write "</tbody></table></body></html>".freeze
+			current_file.write(html_finish)
 			current_file.close
+			current_file = nil
 		end
 
 		return current_page_number
@@ -559,7 +600,7 @@ class InvestigatorReportGenerator
 									break if line.nil?
 									# Write text line by line, escaping HTML
 									# special characters along the way
-									file.write html_escape(line)+"\n"
+									file.write StringEscapeUtils.escapeHtml4(line)+"\n"
 								end
 							end
 						rescue Exception => exc
