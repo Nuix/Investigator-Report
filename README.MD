@@ -22,10 +22,11 @@ Begin by downloading the latest release of this code.  Extract the contents of t
 
 ## Building from Source
 
-This script relies on 2 JAR files:
+This script relies on 3 JAR files:
 
 - `Nx.jar`: Source code (or already built JAR file) can be found in this repository: https://github.com/Nuix/Nx
 - `InvestigatorReportGUI.jar`: Source code can be found in this respository
+- `commons-text-1.8.jar`: [Apache Commons Text](https://commons.apache.org/proper/commons-text/), used to HTML escape values being written to HTML files.  JAR file can be downloaded [here](https://mvnrepository.com/artifact/org.apache.commons/commons-text/1.8).
 
 To build `InvestigatorReportGUI.jar`, load the source files into your IDE of choice.  Make sure the build path includes `\lib\*.jar` from the Nuix install directory.  For example, if you have Nuix 7.4 installed, include all JAR files located in `C:\Program Files\Nuix\Nuix 8.6\lib` in you build path.
 
