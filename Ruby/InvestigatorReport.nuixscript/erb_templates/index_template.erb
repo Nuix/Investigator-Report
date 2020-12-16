@@ -51,7 +51,7 @@
 				<% summary_reports.each do |summary_report| -%>
 					<% next if summary_report["hit_count"] < 1 -%>
 					<% summary_report["pages"].times do |page|-%>
-						<li><a href="<%= "Summary_#{escape_filename(summary_report["title"])}_#{(page+1).to_s.rjust(4,"0")}.html" -%>" target="content"><%= html_escape(summary_report["title"]) -%>
+						<li><a href="<%= "Summary_#{escape_filename(summary_report["title"])}_#{(page+1).to_s.rjust(8,"0")}.html" -%>" target="content"><%= html_escape(summary_report["title"]) -%>
 							<% if summary_report["pages"] > 1 -%>
 								<%= " (#{page+1} / #{summary_report["pages"]})" -%>
 							<% end -%>
