@@ -376,7 +376,8 @@ class InvestigatorReportGenerator
 		current_page_number = 0
 		total_pages = (items.size.to_f / records_per_summary.to_f).ceil
 		escaped_title = escape_filename(title).freeze
-		table_headers = profile_fields.map{|f|"<th>".freeze+StringEscapeUtils.escapeHtml4(f.getName)+"</th>".freeze}.join
+		table_headers = ["Index"] + profile_fields.map{|f| StringEscapeUtils.escapeHtml4(f.getName)}
+		table_headers = table_headers.map{|h|"<th>".freeze+h+"</th>".freeze}.join
 		title = StringEscapeUtils.escapeHtml4(title).freeze
 
 		table_row_chunks = []
@@ -448,6 +449,15 @@ class InvestigatorReportGenerator
 			current_file.write(get_thumbnail_detail_link(item))
 			current_file.write(" ".freeze+get_map_link(item,profile_fields)) if include_map_link
 			current_file.write(html_cell_finish)
+			
+			# Index column value, withing a given summary, each item
+			# is assigned an sequential index for convenience of verbally
+			# referencing a given row on a given summary page
+			current_file.write(html_cell_start)
+			current_file.write(item_index+1)
+			current_file.write(html_cell_finish)
+			
+			# Write out profile values as table cells
 			profile_fields.each do |f|
 				current_file.write(html_cell_start)
 				current_file.write(StringEscapeUtils.escapeHtml4(f.evaluate(item)))
