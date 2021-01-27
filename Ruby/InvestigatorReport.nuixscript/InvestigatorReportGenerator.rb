@@ -460,7 +460,11 @@ class InvestigatorReportGenerator
 			# Write out profile values as table cells
 			profile_fields.each do |f|
 				current_file.write(html_cell_start)
-				current_file.write(StringEscapeUtils.escapeHtml4(f.evaluate(item)))
+				if f.getName == "Comment"
+					current_file.write("<pre>"+StringEscapeUtils.escapeHtml4(f.evaluate(item))+"</pre>")
+				else
+					current_file.write(StringEscapeUtils.escapeHtml4(f.evaluate(item)))
+				end
 				current_file.write(html_cell_finish)
 			end
 			current_file.write(html_row_finish)
