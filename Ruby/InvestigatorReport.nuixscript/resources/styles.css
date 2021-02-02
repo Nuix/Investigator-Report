@@ -11,4 +11,4 @@ This class is added to <pre> tag wrapping cells in Comment column of summaries. 
 that <pre> can get then add this to the below, changing width to desired value:
 max-width:250px;
 */
-pre.comment_col { white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word; }
+pre.comment_col { white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:normal; }
