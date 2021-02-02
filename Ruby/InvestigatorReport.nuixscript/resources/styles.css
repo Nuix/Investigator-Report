@@ -6,3 +6,9 @@ table.two_col td:last-child { width: 100% }
 .two_col_label { font-weight: bold; text-align: right; white-space: nowrap;}
 .two_col_value {  }
 .tag { border:1px solid black; padding: 2px; }
+/*
+This class is added to <pre> tag wrapping cells in Comment column of summaries.  If you wish to restrict how wide
+that <pre> can get then add this to the below, changing width to desired value:
+max-width:250px;
+*/
+pre.comment_col { white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word; }

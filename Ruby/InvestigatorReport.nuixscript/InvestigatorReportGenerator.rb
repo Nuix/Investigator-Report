@@ -461,7 +461,7 @@ class InvestigatorReportGenerator
 			profile_fields.each do |f|
 				current_file.write(html_cell_start)
 				if f.getName == "Comment"
-					current_file.write("<pre>"+StringEscapeUtils.escapeHtml4(f.evaluate(item))+"</pre>")
+					current_file.write("<pre class=\"comment_col\">"+StringEscapeUtils.escapeHtml4(f.evaluate(item))+"</pre>")
 				else
 					current_file.write(StringEscapeUtils.escapeHtml4(f.evaluate(item)))
 				end
