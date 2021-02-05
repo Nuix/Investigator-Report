@@ -25,9 +25,10 @@ defaults = {
 	},
 	:summary_default_profile_name => "Default metadata profile",
 	:summary_default_item_sort => "Item Position",
+	:preformatted_summary_columns => ["Comment","Body"]
 }
 
-# Valid Item Sorts:
+# Valid :summary_default_item_sort values:
 # "Item Position"
 # "Item Date Ascending"
 # "Item Date Descending"
@@ -91,6 +92,7 @@ dialog.getChckbxReportExcludedItems.setSelected(defaults[:report_excluded_items]
 dialog.setVisible(true)
 if dialog.getDialogResult == true
 	report_settings = dialog.getSettings
+	report_settings["preformatted_summary_columns"] = defaults[:preformatted_summary_columns]
 
 	ProgressDialog.forBlock do |progress_dialog|
 		progress_dialog.setAbortButtonVisible(false)

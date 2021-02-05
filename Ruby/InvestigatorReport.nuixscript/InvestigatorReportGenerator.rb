@@ -25,13 +25,26 @@ class InvestigatorReportGenerator
 			"imaging_settings" => {},
 			"parallel_export_settings" => NuixPreferences.get_export_parallel_preferences,
 			"report_excluded_items" => true,
+			"preformatted_summary_columns" => []
 		}.merge(settings)
+		
 		@settings["products"].map{|p|p["subdir"] ||= p["type"]}
 		@product_settings_by_type = {}
 		@settings["products"].each do |p|
 			@product_settings_by_type[p["type"]] = p
 		end
+
+		# convert preformatted_summary_columns array to Hash for faster lookup
+		# later on we we make use of the value while building summary pages,
+		# we will also down case names so that column names aren't case sensitive
+		tmp = {}
+		@settings["preformatted_summary_columns"].each do |col_name|
+			tmp[col_name.downcase] = true
+		end
+		@settings["preformatted_summary_columns"] = tmp
+		
 		@progress_dialog = progress_dialog
+		
 		@templates = {}
 		load_templates
 
@@ -460,8 +473,8 @@ class InvestigatorReportGenerator
 			# Write out profile values as table cells
 			profile_fields.each do |f|
 				current_file.write(html_cell_start)
-				if f.getName == "Comment"
-					current_file.write("<pre class=\"comment_col\">"+StringEscapeUtils.escapeHtml4(f.evaluate(item))+"</pre>")
+				if @settings["preformatted_summary_columns"][f.getName.downcase] == true
+					current_file.write("<pre class=\"preformatted_col\">"+StringEscapeUtils.escapeHtml4(f.evaluate(item))+"</pre>")
 				else
 					current_file.write(StringEscapeUtils.escapeHtml4(f.evaluate(item)))
 				end

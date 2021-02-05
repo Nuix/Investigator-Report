@@ -6,9 +6,32 @@ table.two_col td:last-child { width: 100% }
 .two_col_label { font-weight: bold; text-align: right; white-space: nowrap;}
 .two_col_value {  }
 .tag { border:1px solid black; padding: 2px; }
+
 /*
-This class is added to <pre> tag wrapping cells in Comment column of summaries.  If you wish to restrict how wide
-that <pre> can get then add this to the below, changing width to desired value:
+This class is added to <pre> tag wrapping cells in a summary page column for columns which have.
+been configured to use pre-formatted text.  List of column names that receive this <pre> wrapper
+can be configured in InvestigatorReport.rb default setting :preformatted_summary_columns
+
+Here are some CSS hints to further refine the behavior:
+
+Sets the <pre> tag maximum width in pixels to 250:
+
 max-width:250px;
+
+Try to keep height at 20 characters:
+
+max-height: 20em; 
+
+Scroll in vertical direction when we exceed the max height:
+
+overflow-y: scroll;
+
 */
-pre.comment_col { white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:normal;word-break:keep-all; }
+pre.preformatted_col {
+	white-space:pre-wrap;
+	white-space:-moz-pre-wrap;
+	white-space:-pre-wrap;
+	white-space:-o-pre-wrap;
+	word-wrap:normal;
+	word-break:keep-all;
+}
