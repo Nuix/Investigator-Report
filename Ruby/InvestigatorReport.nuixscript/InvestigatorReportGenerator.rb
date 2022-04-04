@@ -23,7 +23,13 @@ class InvestigatorReportGenerator
 				"Investigator" => $current_case.getInvestigator,
 			},
 			"imaging_settings" => {},
-			"parallel_export_settings" => NuixPreferences.get_export_parallel_preferences,
+			"parallel_export_settings" => {
+				"workerCount" => 4,
+				"workerMemory" => 1024,
+				"workerTemp" => "c:\\WorkerTemp",
+				"embedBroker" => true,
+				"brokerMemory" => 768,
+			},
 			"report_excluded_items" => true,
 			"preformatted_summary_columns" => []
 		}.merge(settings)

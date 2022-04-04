@@ -3,7 +3,7 @@
 
 defaults = {
 	:export_directory => "C:\\InvestigatorReports".gsub(/[\/\\]$/,File::SEPARATOR),
-	:worker_count => nil,
+	:worker_count => 4,
 	:worker_memory => 1024,
 	:worker_temp => "C:\\NuixWorkerTemp".gsub(/[\/\\]$/,File::SEPARATOR),
 	:report_title_prefix => "Report ",
@@ -64,7 +64,6 @@ NuixConnection.setUtilities($utilities)
 NuixConnection.setCurrentNuixVersion(NUIX_VERSION)
 
 load File.join(script_directory,"RubyClassExtensions.rb")
-load File.join(script_directory,"NuixPreferences.rb")
 load File.join(script_directory,"InvestigatorReportGenerator.rb")
 require File.join(script_directory,"InvestigatorReportGUI.jar")
 
@@ -82,10 +81,9 @@ tags = $current_case.getAllTags.sort
 profiles = $utilities.getMetadataProfileStore.getMetadataProfiles.map{|p|p.getName}.sort
 dialog = ReportSettingsDialog.new(tags,profiles,defaults[:report_title_prefix])
 dialog.setOutputDirectory(File.join(defaults[:export_directory],Time.now.strftime("%Y%m%d_%H-%M-%S")))
-export_parallel_preferences = NuixPreferences.get_export_parallel_preferences
-dialog.getSpinnerWorkerCount.setValue(defaults[:worker_count] || export_parallel_preferences["workerCount"])
-dialog.getSpinnerWorkerMemory.setValue(defaults[:worker_memory] || export_parallel_preferences["workerMemory"])
-dialog.getTxtWorkerTemp.setText(defaults[:worker_temp] || export_parallel_preferences["workerTemp"])
+dialog.getSpinnerWorkerCount.setValue(defaults[:worker_count])
+dialog.getSpinnerWorkerMemory.setValue(defaults[:worker_memory])
+dialog.getTxtWorkerTemp.setText(defaults[:worker_temp])
 dialog.setItemDetailSettings(defaults[:item_details])
 dialog.getChckbxReportExcludedItems.setSelected(defaults[:report_excluded_items])
 
