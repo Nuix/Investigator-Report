@@ -1,7 +1,7 @@
 Investigator Report
 ===================
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) ![This script was last tested in Nuix 8.6](https://img.shields.io/badge/Script%20Tested%20in%20Nuix-8.6-green.svg)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) ![This script was last tested in Nuix 9.6](https://img.shields.io/badge/Script%20Tested%20in%20Nuix-9.6-green.svg)
 
 View the GitHub project [here](https://github.com/Nuix/Investigator-Report) or download the latest release [here](https://github.com/Nuix/Investigator-Report/releases).
 
@@ -33,7 +33,7 @@ To build `InvestigatorReportGUI.jar`, load the source files into your IDE of cho
 # License
 
 ```
-Copyright 2020 Nuix
+Copyright 2022 Nuix
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
