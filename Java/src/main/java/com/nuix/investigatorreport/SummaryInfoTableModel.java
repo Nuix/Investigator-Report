@@ -1,5 +1,7 @@
 package com.nuix.investigatorreport;
 
+import lombok.Getter;
+
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,9 +10,13 @@ import java.util.List;
 @SuppressWarnings("serial")
 public class SummaryInfoTableModel extends AbstractTableModel {
 
+    @Getter
     private ArrayList<SummaryInfo> summaries = new ArrayList<SummaryInfo>();
 
-    private String[] columnNames = {"Title", "Tag", "Profile", "Item Sort", "Export No Products"};
+    private final String[] columnNames = {
+            "Title", "Tag", "Profile", "Item Sort", "Export No Products",
+            "Hyperlink PDF", "Hyperlink Native", "Hyperlink Item Details"
+    };
 
     @Override
     public String getColumnName(int column) {
@@ -40,7 +46,13 @@ public class SummaryInfoTableModel extends AbstractTableModel {
             case 3:
                 return info.getSort();
             case 4:
-                return info.getProductExportDisabled();
+                return info.isProductExportDisabled();
+            case 5:
+                return info.isPdfHyperlinked();
+            case 6:
+                return info.isNativeHyperlinked();
+            case 7:
+                return info.isItemDetailsHyperlinked();
         }
         return null;
     }
@@ -64,6 +76,15 @@ public class SummaryInfoTableModel extends AbstractTableModel {
             case 4:
                 info.setProductExportDisabled((boolean) value);
                 break;
+            case 5:
+                info.setPdfHyperlinked((boolean) value);
+                break;
+            case 6:
+                info.setNativeHyperlinked((boolean) value);
+                break;
+            case 7:
+                info.setItemDetailsHyperlinked((boolean) value);
+                break;
         }
     }
 
@@ -74,7 +95,7 @@ public class SummaryInfoTableModel extends AbstractTableModel {
 
     @Override
     public Class<?> getColumnClass(int col) {
-        if (col == 4) {
+        if (col >= 4) {
             return Boolean.class;
         } else {
             return super.getColumnClass(col);
@@ -99,10 +120,6 @@ public class SummaryInfoTableModel extends AbstractTableModel {
     public void clear() {
         summaries.clear();
         fireTableDataChanged();
-    }
-
-    public ArrayList<SummaryInfo> getSummaries() {
-        return summaries;
     }
 
     public void setSummaries(ArrayList<SummaryInfo> summaries) {

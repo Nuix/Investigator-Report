@@ -65,7 +65,7 @@ NuixConnection.setCurrentNuixVersion(NUIX_VERSION)
 
 load File.join(script_directory,"RubyClassExtensions.rb")
 load File.join(script_directory,"InvestigatorReportGenerator.rb")
-require File.join(script_directory,"InvestigatorReportGUI.jar")
+require File.join(script_directory,"InvestigatorReport.jar")
 
 java_import com.nuix.investigatorreport.ReportSettingsDialog
 java_import java.io.BufferedReader

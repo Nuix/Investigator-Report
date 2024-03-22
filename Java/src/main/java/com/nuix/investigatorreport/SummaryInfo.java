@@ -1,15 +1,44 @@
 package com.nuix.investigatorreport;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SummaryInfo {
+    @Setter
+    @Getter
     private String tag = "";
+
+    @Getter
+    @Setter
     private String profile = "";
+
+    @Setter
+    @Getter
     private String title = "Report Title";
+
+    @Setter
+    @Getter
     private String sort = "Item Position";
-    private boolean disableProductExport = false;
+
+    @Getter
+    @Setter
+    private boolean productExportDisabled = false;
+
+    @Getter
+    @Setter
+    private boolean pdfHyperlinked = false;
+
+    @Getter
+    @Setter
+    private boolean nativeHyperlinked = false;
+
+    @Getter
+    @Setter
+    private boolean itemDetailsHyperlinked = true;
 
     public SummaryInfo() {
     }
@@ -18,45 +47,16 @@ public class SummaryInfo {
         this.title = title;
     }
 
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    public String getProfile() {
-        return profile;
-    }
-
-    public void setProfile(String profile) {
-        this.profile = profile;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getSort() {
-        return sort;
-    }
-
-    public void setSort(String sort) {
-        this.sort = sort;
-    }
-
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<String, Object>();
         result.put("tag", tag);
         result.put("profile", profile);
         result.put("title", title);
         result.put("sort", sort);
-        result.put("disable_export", disableProductExport);
+        result.put("disable_export", productExportDisabled);
+        result.put("hyperlink_pdf", pdfHyperlinked);
+        result.put("hyperlink_native", nativeHyperlinked);
+        result.put("hyperlink_item_details", itemDetailsHyperlinked);
         return result;
     }
 
@@ -81,13 +81,5 @@ public class SummaryInfo {
                 return false;
         }
         return true;
-    }
-
-    public boolean getProductExportDisabled() {
-        return disableProductExport;
-    }
-
-    public void setProductExportDisabled(boolean value) {
-        disableProductExport = value;
     }
 }

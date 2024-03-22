@@ -2,6 +2,7 @@ package com.nuix.investigatorreport;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.Getter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
@@ -21,9 +22,9 @@ import java.util.*;
 @SuppressWarnings("serial")
 public class ReportSettingsDialog extends JDialog {
 
-    private static Logger logger = Logger.getLogger(ReportSettingsDialog.class);
+    private static final Logger logger = Logger.getLogger(ReportSettingsDialog.class);
 
-    private static String[] availableItemSorts = new String[]{
+    private static final String[] availableItemSorts = new String[]{
             "Item Position",
             "Item Date Ascending",
             "Item Date Descending",
@@ -43,11 +44,8 @@ public class ReportSettingsDialog extends JDialog {
             "None",
     };
 
+    @Getter
     private static int defaultRecordsPerPage = 2000;
-
-    public static int getDefaultRecordsPerPage() {
-        return defaultRecordsPerPage;
-    }
 
     public static void setDefaultRecordsPerPage(int defaultRecordsPerPage) {
         ReportSettingsDialog.defaultRecordsPerPage = defaultRecordsPerPage;
@@ -136,7 +134,7 @@ public class ReportSettingsDialog extends JDialog {
         availableTags = tags;
         availableProfiles = profiles;
         setTitle("Investigator Report");
-        setSize(new Dimension(900, 600));
+        setSize(new Dimension(1024, 600));
         setLocationRelativeTo(null);
         setModal(true);
         getContentPane().setLayout(new BorderLayout());

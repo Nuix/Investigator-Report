@@ -254,6 +254,60 @@ class InvestigatorReportGenerator
 		end
 	end
 
+	def get_thumbnail_pdf_link(item)
+		width=80
+		title = "PDF".freeze
+		pdf_product = @settings["products"].select{|p|p["type"] == "pdf".freeze}.first
+		native_product = @settings["products"].select{|p|p["type"] == "native".freeze}.first
+		guid = item.getGuid
+		item_type = item.getType
+		item_kind = item_type.getKind.getName
+		item_mime_type = item_type.getName
+		guid_subdir = guid[0..2]
+		exported_dir = @settings["report_directories"]["exported_files"]
+
+		if !has_pdf?(item)
+			return "<span>No PDF Exported</span>"
+		else
+			pdf_file = "./#{exported_dir}/#{pdf_product["subdir"]}/#{guid_subdir}/#{guid}.pdf"
+			link_content = title
+
+			if has_thumbnail?(item)
+				src = "./#{exported_dir}/#{thumbnail_settings["subdir"]}/#{guid_subdir}/#{guid}.png"
+				link_content = "<img src=\"#{src}\" style=\"width:#{width}px\"/ style=\"width:#{width}px\">"
+			end
+
+			return "<a href=\"#{pdf_file}\" title=\"#{title}\">#{link_content}</a>"
+		end
+	end
+
+	def get_thumbnail_native_link(item)
+		width=80
+		title = "Native".freeze
+		native_product = @settings["products"].select{|p|p["type"] == "native".freeze}.first
+		guid = item.getGuid
+		item_type = item.getType
+		item_kind = item_type.getKind.getName
+		item_mime_type = item_type.getName
+		guid_subdir = guid[0..2]
+		exported_dir = @settings["report_directories"]["exported_files"]
+
+		if !has_native?(item)
+			return "<span>No Native Exported</span>"
+		else
+			extension = get_native_extension(item)
+			native_file = "./#{exported_dir}/#{native_product["subdir"]}/#{guid_subdir}/#{guid}.#{extension}"
+			link_content = title
+
+			if has_thumbnail?(item)
+				src = "./#{exported_dir}/#{thumbnail_settings["subdir"]}/#{guid_subdir}/#{guid}.png"
+				link_content = "<img src=\"#{src}\" style=\"width:#{width}px\"/ style=\"width:#{width}px\">"
+			end
+
+			return "<a href=\"#{native_file}\" title=\"#{title}\">#{link_content}</a>"
+		end
+	end
+
 	def escape_tag_for_search(tag)
 		return tag
 		.gsub("\\","\\\\\\") #Escape \
@@ -373,14 +427,19 @@ class InvestigatorReportGenerator
 					when "None"
 						summary_items = summary_items
 				end
-				summary_report["pages"] = generate_summary(summary_report["title"],summary_items,summary_report["profile"],query)
+				summary_report["pages"] = generate_summary(summary_report,summary_items,summary_report["profile"],query)
 			else
 				logMessage("\t\tYielded no hits, skipping summary")
 			end
 		end
 	end
 
-	def generate_summary(title,items,profile_name,query)
+	def generate_summary(summary_report,items,profile_name,query)
+		title = summary_report["title"]
+		hyperlink_pdf = summary_report["hyperlink_pdf"]
+		hyperlink_native = summary_report["hyperlink_native"]
+		hyperlink_item_details = summary_report["hyperlink_item_details"]
+
 		logMessage("\t\tGenerating summary template data...")
 		case_stats = $current_case.getStatistics
 		include_map_link = false #Needs some tweaking possibly still
@@ -395,7 +454,15 @@ class InvestigatorReportGenerator
 		current_page_number = 0
 		total_pages = (items.size.to_f / records_per_summary.to_f).ceil
 		escaped_title = escape_filename(title).freeze
-		table_headers = ["Index"] + profile_fields.map{|f| StringEscapeUtils.escapeHtml4(f.getName)}
+		
+		table_headers = []
+		table_headers << "PDF" if hyperlink_pdf
+		table_headers << "Native" if hyperlink_native
+		table_headers << "Item Details" if hyperlink_item_details
+
+		table_headers << "Index"
+		table_headers += profile_fields.map{|f| StringEscapeUtils.escapeHtml4(f.getName)}
+
 		table_headers = table_headers.map{|h|"<th>".freeze+h+"</th>".freeze}.join
 		title = StringEscapeUtils.escapeHtml4(title).freeze
 
@@ -415,7 +482,7 @@ class InvestigatorReportGenerator
 
 		# Just in case Ruby is being weird and reallocating these strings over and over
 		html_finish = "</tbody></table></body></html>".freeze
-		html_row_cell_start = "<tr><td>".freeze
+		html_row_start = "<tr>".freeze
 		html_cell_finish = "</td>".freeze
 		html_cell_start = "<td>".freeze
 		html_row_finish = "</tr>".freeze
@@ -464,10 +531,13 @@ class InvestigatorReportGenerator
 			# but was pulled out and instead we now immediately write most of the table source directly to
 			# the file with the hopes that memory usage gets reduced.
 			setProgressValue(item_index+1)
-			current_file.write(html_row_cell_start)
-			current_file.write(get_thumbnail_detail_link(item))
+			current_file.write(html_row_start)
+
+			current_file.write(html_cell_start+get_thumbnail_pdf_link(item)+html_cell_finish) if hyperlink_pdf
+			current_file.write(html_cell_start+get_thumbnail_native_link(item)+html_cell_finish) if hyperlink_native
+			current_file.write(html_cell_start+get_thumbnail_detail_link(item)+html_cell_finish) if hyperlink_item_details
+
 			current_file.write(" ".freeze+get_map_link(item,profile_fields)) if include_map_link
-			current_file.write(html_cell_finish)
 			
 			# Index column value, withing a given summary, each item
 			# is assigned an sequential index for convenience of verbally
@@ -720,6 +790,30 @@ class InvestigatorReportGenerator
 			export_dir = report_path(@settings["report_directories"]["exported_files"])
 			image_path = File.join(export_dir,subdir,item.getGuid[0..2],"#{item.getGuid}.png")
 			return java.io.File.new(image_path).exists
+		end
+	end
+
+	def has_pdf?(item)
+		if !was_exported?("pdf")
+			return false
+		else
+			pdf_settings = get_export_settings("pdf")
+			subdir = pdf_settings["subdir"]
+			export_dir = report_path(@settings["report_directories"]["exported_files"])
+			pdf_path = File.join(export_dir,subdir,item.getGuid[0..2],"#{item.getGuid}.pdf")
+			return java.io.File.new(pdf_path).exists
+		end
+	end
+
+	def has_native?(item)
+		if !was_exported?("native")
+			return false
+		else
+			native_settings = get_export_settings("native")
+			subdir = native_settings["subdir"]
+			export_dir = report_path(@settings["report_directories"]["exported_files"])
+			native_path = File.join(export_dir,subdir,item.getGuid[0..2],"#{item.getGuid}.#{get_native_extension(item)}")
+			return java.io.File.new(native_path).exists
 		end
 	end
 
