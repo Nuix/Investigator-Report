@@ -89,6 +89,7 @@ public class ReportSettingsDialog extends JDialog {
     private JCheckBox chckbxExportText;
     private JCheckBox chckbxExportPdfs;
     private JCheckBox chckbxExportThumbnails;
+    private JCheckBox chckbxExportGenerateItemDetails;
     private JCheckBox chckbxIncludeTags;
     private JCheckBox chckbxIncludeText;
     private JCheckBox chckbxIncludeCustomMetadata;
@@ -591,7 +592,7 @@ public class ReportSettingsDialog extends JDialog {
                     {
                         {
                             JPanel panelItemDetails = new JPanel();
-                            tabbedPane.addTab("Item Details", null, panelItemDetails, null);
+                            tabbedPane.addTab("Item Products", null, panelItemDetails, null);
                             GridBagLayout gbl_panelItemDetails = new GridBagLayout();
                             gbl_panelItemDetails.columnWidths = new int[]{0, 0};
                             gbl_panelItemDetails.rowHeights = new int[]{0, 0, 0, 0};
@@ -608,9 +609,9 @@ public class ReportSettingsDialog extends JDialog {
                                 gbc_panel.gridy = 0;
                                 panelItemDetails.add(panel, gbc_panel);
                                 GridBagLayout gbl_panel = new GridBagLayout();
-                                gbl_panel.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
+                                gbl_panel.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0 };
                                 gbl_panel.rowHeights = new int[]{0, 0};
-                                gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+                                gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
                                 gbl_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
                                 panel.setLayout(gbl_panel);
                                 {
@@ -657,6 +658,16 @@ public class ReportSettingsDialog extends JDialog {
                                     gbc_chckbxExportThumbnails.gridy = 0;
                                     panel.add(chckbxExportThumbnails, gbc_chckbxExportThumbnails);
                                 }
+                                {
+                                    chckbxExportGenerateItemDetails = new JCheckBox("Generate Item Details");
+                                    chckbxExportGenerateItemDetails.setSelected(true);
+                                    chckbxExportGenerateItemDetails.setToolTipText("Whether Item Detail files will be generated for report items");
+                                    GridBagConstraints gbc_chckbxExportGenerateItemDetails = new GridBagConstraints();
+                                    gbc_chckbxExportGenerateItemDetails.anchor = GridBagConstraints.WEST;
+                                    gbc_chckbxExportGenerateItemDetails.gridx = 8;
+                                    gbc_chckbxExportGenerateItemDetails.gridy = 0;
+                                    panel.add(chckbxExportGenerateItemDetails, gbc_chckbxExportGenerateItemDetails);
+                                }
                             }
                             {
                                 pdfOptionsPanel = new JPanel() {
@@ -687,7 +698,7 @@ public class ReportSettingsDialog extends JDialog {
                             }
                             {
                                 JPanel panel = new JPanel();
-                                panel.setBorder(new TitledBorder(null, "Exported Information", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+                                panel.setBorder(new TitledBorder(null, "Exported Item Details", TitledBorder.LEADING, TitledBorder.TOP, null, null));
                                 GridBagConstraints gbc_panel = new GridBagConstraints();
                                 gbc_panel.fill = GridBagConstraints.BOTH;
                                 gbc_panel.gridx = 0;
@@ -1022,6 +1033,8 @@ public class ReportSettingsDialog extends JDialog {
             products.add(entry);
         }
         settings.put("products", products);
+
+        settings.put("generate_item_details", chckbxExportGenerateItemDetails.isSelected());
 
         Map<String, Object> imagingSettings = new HashMap<String, Object>();
         imagingSettings.put("imageExcelSpreadsheets", chckbxImageSpreadsheets.isSelected());

@@ -25,11 +25,12 @@
 		<div class="row">
 			<% slice.each do |item| -%>
 			<% src = "products\\#{subdir}\\#{item.getGuid[0..2]}\\#{item.getGuid}.png" -%>
-			<% item_detail_url = "#{get_item_detail_directory(item)}\\#{item.getGuid}.html" -%>
-			<% tooltip = "Kind: #{item.getType.getKind.getName.capitalize}<br/>" -%>
-			<% tooltip << "Mime-Type: #{item.getType.getName}" -%>
+			<% url = get_any_path(item) -%>
+			<% tooltip = "Kind: #{item.getType.getKind.getName.capitalize}" -%>
+			<% tooltip << "<br/>Mime-Type: #{item.getType.getName}" -%>
+			<% tooltip << "<br/>Name: #{item.getLocalisedName}" -%>
 			<div class="col-md-2">
-				<a href="<%= item_detail_url -%>" class="thumbnail" data-toggle="tooltip" title="<%= tooltip -%>">
+				<a href="<%= url -%>" class="thumbnail" data-toggle="tooltip" title="<%= tooltip -%>">
 					<img class="fit-image" src="<%= src -%>" alt="<%= item.getLocalisedName -%>">
 					<div class="caption">
 						<%= item.getLocalisedName -%>

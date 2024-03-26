@@ -159,8 +159,12 @@ class InvestigatorReportGenerator
 		end
 
 		generate_case_information_page
-		create_directory(@settings["report_directories"]["item_details"])
-		generate_item_details(items)
+
+		if @settings["generate_item_details"] == true
+			create_directory(@settings["report_directories"]["item_details"])
+			generate_item_details(items)
+		end
+
 		generate_tag_summaries
 		if was_exported?("thumbnail")
 			generate_thumbnails_gallery(items)
@@ -231,6 +235,10 @@ class InvestigatorReportGenerator
 	end
 
 	def get_thumbnail_detail_link(item)
+		if @settings["generate_item_details"] != true
+			return "<span>Not Generated</span>"
+		end
+
 		width=80
 		title = "Item&nbsp;Details".freeze
 		native_product = @settings["products"].select{|p|p["type"] == "native".freeze}.first
@@ -273,6 +281,7 @@ class InvestigatorReportGenerator
 			link_content = title
 
 			if has_thumbnail?(item)
+				thumbnail_settings = get_export_settings("thumbnail")
 				src = "./#{exported_dir}/#{thumbnail_settings["subdir"]}/#{guid_subdir}/#{guid}.png"
 				link_content = "<img src=\"#{src}\" style=\"width:#{width}px\"/ style=\"width:#{width}px\">"
 			end
@@ -300,6 +309,7 @@ class InvestigatorReportGenerator
 			link_content = title
 
 			if has_thumbnail?(item)
+				thumbnail_settings = get_export_settings("thumbnail")
 				src = "./#{exported_dir}/#{thumbnail_settings["subdir"]}/#{guid_subdir}/#{guid}.png"
 				link_content = "<img src=\"#{src}\" style=\"width:#{width}px\"/ style=\"width:#{width}px\">"
 			end
@@ -455,12 +465,11 @@ class InvestigatorReportGenerator
 		total_pages = (items.size.to_f / records_per_summary.to_f).ceil
 		escaped_title = escape_filename(title).freeze
 		
-		table_headers = []
+		table_headers = ["Index"]
 		table_headers << "PDF" if hyperlink_pdf
 		table_headers << "Native" if hyperlink_native
 		table_headers << "Item Details" if hyperlink_item_details
 
-		table_headers << "Index"
 		table_headers += profile_fields.map{|f| StringEscapeUtils.escapeHtml4(f.getName)}
 
 		table_headers = table_headers.map{|h|"<th>".freeze+h+"</th>".freeze}.join
@@ -533,18 +542,18 @@ class InvestigatorReportGenerator
 			setProgressValue(item_index+1)
 			current_file.write(html_row_start)
 
-			current_file.write(html_cell_start+get_thumbnail_pdf_link(item)+html_cell_finish) if hyperlink_pdf
-			current_file.write(html_cell_start+get_thumbnail_native_link(item)+html_cell_finish) if hyperlink_native
-			current_file.write(html_cell_start+get_thumbnail_detail_link(item)+html_cell_finish) if hyperlink_item_details
-
-			current_file.write(" ".freeze+get_map_link(item,profile_fields)) if include_map_link
-			
-			# Index column value, withing a given summary, each item
+			# Index column value, within a given summary, each item
 			# is assigned an sequential index for convenience of verbally
 			# referencing a given row on a given summary page
 			current_file.write(html_cell_start)
 			current_file.write(item_index+1)
 			current_file.write(html_cell_finish)
+
+			current_file.write(html_cell_start+get_thumbnail_pdf_link(item)+html_cell_finish) if hyperlink_pdf
+			current_file.write(html_cell_start+get_thumbnail_native_link(item)+html_cell_finish) if hyperlink_native
+			current_file.write(html_cell_start+get_thumbnail_detail_link(item)+html_cell_finish) if hyperlink_item_details
+
+			current_file.write(" ".freeze+get_map_link(item,profile_fields)) if include_map_link
 			
 			# Write out profile values as table cells
 			profile_fields.each do |f|
@@ -778,7 +787,7 @@ class InvestigatorReportGenerator
 	end
 
 	def was_exported?(product_name)
-		return get_export_settings(product_name).nil? == false
+		return !get_export_settings(product_name).nil?
 	end
 
 	def has_thumbnail?(item)
@@ -942,5 +951,45 @@ class InvestigatorReportGenerator
 
 	def get_item_detail_directory(item)
 		return File.join(@settings["report_directories"]["item_details"],item.getGuid[0..2])
+	end
+
+	def get_item_detail_path(item)
+		return File.join(get_item_detail_directory(item),"#{item.getGuid}.html")
+	end
+
+	def get_any_path(item)
+		if @settings["generate_item_details"] == true
+			return get_item_detail_path(item)
+		elsif has_pdf?(item)
+			return get_pdf_path(item)
+		elsif has_native?(item)
+			return get_native_path(item)
+		else
+			return "#"
+		end
+	end
+
+	def get_pdf_path(item)
+		pdf_settings = get_export_settings("pdf")
+		subdir = pdf_settings["subdir"]
+		export_dir = report_path(@settings["report_directories"]["exported_files"])
+		pdf_path = File.join(export_dir,subdir,item.getGuid[0..2],"#{item.getGuid}.pdf")
+		return pdf_path
+	end
+
+	def get_txt_path(item)
+		pdf_settings = get_export_settings("txt")
+		subdir = pdf_settings["subdir"]
+		export_dir = report_path(@settings["report_directories"]["exported_files"])
+		pdf_path = File.join(export_dir,subdir,item.getGuid[0..2],"#{item.getGuid}.txt")
+		return pdf_path
+	end
+
+	def get_native_path(item)
+		native_settings = get_export_settings("native")
+		subdir = native_settings["subdir"]
+		export_dir = report_path(@settings["report_directories"]["exported_files"])
+		native_path = File.join(export_dir,subdir,item.getGuid[0..2],"#{item.getGuid}.#{get_native_extension(item)}")
+		return native_path
 	end
 end
